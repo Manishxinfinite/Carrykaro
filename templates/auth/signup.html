@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 50%, #c3e6cb 100%);
+    }
+
+    .signup-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(40, 167, 69, 0.15);
+        overflow: hidden;
+        max-width: 700px;
+        margin: 2rem auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        padding: 2rem;
+        animation: fadeInUp 0.8s ease;
+    }
+
+    .signup-container h3 {
+        color: #28a745;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .form-group, .mb-3 {
+        margin-bottom: 1.25rem;
+        position: relative;
+    }
+
+    input.form-control, select.form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+
+    input.form-control:focus, select.form-control:focus {
+        outline: none;
+        border-color: #28a745;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #6c757d;
+    }
+
+    .password-toggle:hover {
+        color: #28a745;
+    }
+
+    button.btn-primary {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    button.btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+    }
+
+    .error-message {
+        color: red;
+        font-size: 0.9rem;
+        margin-top: -10px;
+        margin-bottom: 10px;
+        display: none;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="signup-container">
+  <h3>Create Account</h3>
+  <form method="post" onsubmit="return validatePasswords()">
+    <div class="mb-3">
+      <label>Username</label>
+      <input name="username" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label>Email</label>
+      <input name="email" type="email" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label>Password</label>
+      <input id="password" name="password" type="password" class="form-control" required>
+      <span class="password-toggle" onclick="togglePassword('password', this)">👁️</span>
+    </div>
+    <div class="mb-3">
+      <label>Confirm Password</label>
+      <input id="confirm_password" type="password" class="form-control" required>
+      <span class="password-toggle" onclick="togglePassword('confirm_password', this)">👁️</span>
+      <div id="error-message" class="error-message">Passwords do not match.</div>
+    </div>
+    <!-- <div class="mb-3">
+      <label>Role (choose for testing)</label>
+      <select name="role" class="form-control">
+        <option value="user">User</option>
+        <option value="vendor">Vendor</option>
+        <option value="sponsor">Sponsor</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div> -->
+    <button class="btn btn-primary">Sign Up</button>
+  </form>
+</div>
+
+<script>
+  function validatePasswords() {
+    const pass = document.getElementById("password").value;
+    const confirmPass = document.getElementById("confirm_password").value;
+    const errorMessage = document.getElementById("error-message");
+
+    if (pass !== confirmPass) {
+      errorMessage.style.display = "block";
+      return false; // stop form submission
+    } else {
+      errorMessage.style.display = "none";
+      return true;
+    }
+  }
+
+  function togglePassword(id, el) {
+    const input = document.getElementById(id);
+    if (input.type === "password") {
+      input.type = "text";
+      el.textContent = "🙈"; // change icon
+    } else {
+      input.type = "password";
+      el.textContent = "👁️"; // revert icon
+    }
+  }
+</script>
+{% endblock %}

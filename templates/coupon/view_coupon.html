@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="card">
+    <div class="card-body text-center">
+      <h4>Coupon: {{ coupon.code }}</h4>
+      <p>Discount: {{ coupon.discount }}%</p>
+      <div class="my-3">
+        <img src="{{ url_for('static_qr', filename=coupon.code + '.png') }}" alt="QR Code" class="img-fluid" style="max-width:250px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.12);">
+      </div>
+      {% if coupon.status == 'approved' %}
+        <form method="post" action="{{ url_for('redeem') }}">
+          <input type="hidden" name="code" value="{{ coupon.code }}">
+          <button class="btn btn-primary mt-3">Redeem Coupon</button>
+        </form>
+      {% else %}
+        <p class="text-muted">Status: <strong>{{ coupon.status }}</strong> — this coupon cannot be redeemed until approved.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

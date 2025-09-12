@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h3>Sponsorship Dashboard</h3>
+  <p>Coupons - approve or reject</p>
+  <table class="table">
+    <thead><tr><th>Code</th><th>Disc</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for c in coupons %}
+        <tr>
+          <td>{{ c.code }}</td>
+          <td>{{ c.discount }}%</td>
+          <td>{{ c.status }}</td>
+          <td>
+            {% if c.status == 'pending' %}
+              <button class="btn btn-sm btn-success approveBtn" data-code="{{ c.code }}">Approve</button>
+              <button class="btn btn-sm btn-danger rejectBtn" data-code="{{ c.code }}">Reject</button>
+            {% else %}
+              <a class="btn btn-sm btn-outline-primary" href="{{ url_for('view_coupon', code=c.code) }}">View</a>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
