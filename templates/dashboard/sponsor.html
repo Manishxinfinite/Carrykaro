@@ -1,25 +1,23 @@
 {% extends 'base.html' %}
 {% block content %}
-  <h3>Sponsorship Dashboard</h3>
-  <p>Coupons - approve or reject</p>
-  <table class="table">
-    <thead><tr><th>Code</th><th>Disc</th><th>Status</th><th>Actions</th></tr></thead>
-    <tbody>
-      {% for c in coupons %}
-        <tr>
-          <td>{{ c.code }}</td>
-          <td>{{ c.discount }}%</td>
-          <td>{{ c.status }}</td>
-          <td>
-            {% if c.status == 'pending' %}
-              <button class="btn btn-sm btn-success approveBtn" data-code="{{ c.code }}">Approve</button>
-              <button class="btn btn-sm btn-danger rejectBtn" data-code="{{ c.code }}">Reject</button>
-            {% else %}
-              <a class="btn btn-sm btn-outline-primary" href="{{ url_for('view_coupon', code=c.code) }}">View</a>
-            {% endif %}
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="text-center">
+    <h3>Sponsorship Dashboard</h3>
+    <p class="lead">Track the number of bags sold</p>
+
+    <!-- Display bags sold -->
+    <div class="card shadow p-4 mx-auto" style="max-width: 400px;">
+      <h4>Total Bags Sold</h4>
+      <p class="display-4">{{ bags_sold }}</p>
+
+      {% if current_user.is_admin %}
+        <!-- Edit option for admin -->
+        <form method="POST" action="{{ url_for('update_bags') }}">
+          <div class="form-group">
+            <input type="number" name="bags_sold" value="{{ bags_sold }}" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary mt-2">Update</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
 {% endblock %}

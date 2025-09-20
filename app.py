@@ -9,34 +9,30 @@ from config import Config
 from models import db, User, Coupon, ScanLog
 import qrcode
 
-# Use ststic as the Flask static folder to match your preference
+# ---------------- APP INIT ----------------
 app = Flask(__name__, static_folder='ststic')
 app.config.from_object(Config)
 
-# ensure qrcode folder exists
+# Ensure QR folder exists
 os.makedirs(app.config['QR_FOLDER'], exist_ok=True)
 
-# init db
+# Database & migration
 db.init_app(app)
 migrate = Migrate(app, db)
 
+# Flask-Login
 login = LoginManager(app)
 login.login_view = 'login'
-
 
 @login.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-
-# --- Utility functions
-
+# ---------------- UTILITY ----------------
 def random_code():
-    # OFF{percent}-{6 chars}
     percent = random.choice([10, 15, 20, 25, 30])
     suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
     return f"OFF{percent}-{suffix}", percent
-
 
 def generate_qr_image(code):
     qr = qrcode.QRCode(box_size=10, border=2)
@@ -49,18 +45,14 @@ def generate_qr_image(code):
     img.save(path)
     return filename
 
-
-# --- Routes
-
+# ---------------- ROUTES ----------------
 @app.route('/')
 def index():
     return render_template('index.html')
 
-
 @app.route('/offers')
 def offers():
     return render_template('index1.html')
-
 
 # ---------------- AUTH ----------------
 @app.route('/signup', methods=['GET', 'POST'])
@@ -69,7 +61,6 @@ def signup():
         username = request.form['username'].strip()
         email = request.form['email'].strip().lower()
         password = request.form['password']
-        # basic server-side confirm password handling if front-end used 'confirm_password'
         confirm = request.form.get('confirm_password')
         if confirm and password != confirm:
             flash('Passwords do not match.', 'danger')
@@ -79,6 +70,7 @@ def signup():
         if User.query.filter((User.username == username) | (User.email == email)).first():
             flash('User already exists.', 'warning')
             return redirect(url_for('signup'))
+
         u = User(username=username, email=email, role=role)
         u.set_password(password)
         db.session.add(u)
@@ -86,7 +78,6 @@ def signup():
         flash('Account created. Please log in.', 'success')
         return redirect(url_for('login'))
     return render_template('auth/signup.html')
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -101,13 +92,11 @@ def login():
         flash('Invalid username or password.', 'danger')
     return render_template('auth/login.html')
 
-
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('index'))
-
 
 # ---------------- DASHBOARD ----------------
 @app.route('/dashboard')
@@ -117,56 +106,92 @@ def dashboard():
     if role == 'admin':
         coupons = Coupon.query.order_by(Coupon.created_at.desc()).all()
         users = User.query.order_by(User.id).all()
-        return render_template('dashboard/admin.html', coupons=coupons, users=users)
+        # Example: sum all sponsor bags
+        total_bags = sum(user.bags_sold for user in users if user.role == 'sponsor')
+        return render_template('dashboard/admin.html', coupons=coupons, users=users, bags_sold=total_bags)
+    
+    if role == 'sponsor':
+        coupons = Coupon.query.order_by(Coupon.created_at.desc()).all()
+        # show only current user's bags
+        return render_template('dashboard/sponsor.html', coupons=coupons, bags_sold=current_user.bags_sold)
+    
     if role == 'vendor':
         coupons = Coupon.query.order_by(Coupon.created_at.desc()).all()
         return render_template('dashboard/vendor.html', coupons=coupons)
-    if role == 'sponsor':
-        coupons = Coupon.query.order_by(Coupon.created_at.desc()).all()
-        return render_template('dashboard/sponsor.html', coupons=coupons)
+    
     # user
     return render_template('dashboard/user.html')
 
 
-# ---------------- USER MANAGEMENT (ADMIN) ----------------
+# ---------------- ADMIN ACTIONS ----------------
+@app.route('/update_bags', methods=['POST'])
+@login_required
+def update_bags():
+    if current_user.role != 'admin':
+        flash("Unauthorized", "danger")
+        return redirect(url_for('dashboard'))
+
+    user_id = request.form.get('user_id')
+    bags_val = request.form.get('bags_sold')
+    if not user_id:
+        flash("Missing user id.", "warning")
+        return redirect(url_for('dashboard'))
+
+    try:
+        uid = int(user_id)
+        new_bags = int(bags_val)
+        if new_bags < 0:
+            raise ValueError
+    except:
+        flash("Invalid input.", "danger")
+        return redirect(url_for('dashboard'))
+
+    user = User.query.get(uid)
+    if not user or user.role != 'sponsor':
+        flash("Invalid user.", "warning")
+        return redirect(url_for('dashboard'))
+
+    user.bags_sold = new_bags
+    db.session.commit()
+    flash(f"Bags sold updated for {user.username}.", "success")
+    return redirect(url_for('dashboard'))
+
 @app.route('/admin/change_role', methods=['POST'])
 @login_required
 def change_role():
-    # only admins allowed
-    if getattr(current_user, 'role', None) != 'admin':
-        flash('Not authorized', 'danger')
+    if current_user.role != 'admin':
+        flash("Unauthorized", "danger")
         return redirect(url_for('dashboard'))
 
     user_id = request.form.get('user_id')
     new_role = request.form.get('role')
     if not user_id or not new_role:
-        flash('Missing parameters for role change.', 'warning')
+        flash("Missing parameters.", "warning")
         return redirect(url_for('dashboard'))
 
-    # ensure user_id is int
     try:
         uid = int(user_id)
-    except (ValueError, TypeError):
-        flash('Invalid user id.', 'danger')
+    except:
+        flash("Invalid user id.", "danger")
         return redirect(url_for('dashboard'))
 
     user = User.query.get(uid)
     if not user:
-        flash('User not found.', 'danger')
+        flash("User not found.", "danger")
         return redirect(url_for('dashboard'))
 
     user.role = new_role
+    if new_role != 'sponsor':
+        user.bags_sold = 0
     db.session.commit()
-    flash(f"Role for {user.username} updated to {new_role}.", 'success')
+    flash(f"{user.username}'s role updated to {new_role}.", "success")
     return redirect(url_for('dashboard'))
-
 
 @app.route('/admin/change_password', methods=['POST'])
 @login_required
 def change_password():
-    # only admins allowed
-    if getattr(current_user, 'role', None) != 'admin':
-        flash('Not authorized', 'danger')
+    if current_user.role != 'admin':
+        flash("Unauthorized", "danger")
         return redirect(url_for('dashboard'))
 
     user_id = request.form.get('user_id')
@@ -174,35 +199,33 @@ def change_password():
     confirm_password = request.form.get('confirm_password')
 
     if not user_id or not new_password or not confirm_password:
-        flash('Missing parameters for password change.', 'warning')
+        flash("Missing parameters.", "warning")
         return redirect(url_for('dashboard'))
 
     if new_password != confirm_password:
-        flash('Passwords do not match.', 'danger')
+        flash("Passwords do not match.", "danger")
         return redirect(url_for('dashboard'))
 
     try:
         uid = int(user_id)
-    except (ValueError, TypeError):
-        flash('Invalid user id.', 'danger')
+    except:
+        flash("Invalid user id.", "danger")
         return redirect(url_for('dashboard'))
 
     user = User.query.get(uid)
     if not user:
-        flash('User not found.', 'danger')
+        flash("User not found.", "danger")
         return redirect(url_for('dashboard'))
 
     user.set_password(new_password)
     db.session.commit()
-    flash(f"Password for {user.username} has been updated.", 'success')
+    flash(f"{user.username}'s password updated.", "success")
     return redirect(url_for('dashboard'))
 
-
-# ---------------- COUPONS ----------------
+# ---------------- COUPON ROUTES ----------------
 @app.route('/generate_coupon', methods=['POST'])
 @login_required
 def generate_coupon_route():
-    # Only allow users to generate 1 coupon per week
     one_week_ago = datetime.utcnow() - timedelta(days=7)
     recent_coupon = Coupon.query.filter(
         Coupon.created_by_id == current_user.id,
@@ -215,7 +238,6 @@ def generate_coupon_route():
             'next_allowed': (recent_coupon.created_at + timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
         }), 400
 
-    # Generate new coupon
     code, discount = random_code()
     c = Coupon(code=code, discount=discount, created_by_id=current_user.id, created_at=datetime.utcnow())
     db.session.add(c)
@@ -224,23 +246,16 @@ def generate_coupon_route():
     filename = generate_qr_image(code)
     qr_url = url_for('static_qr', filename=filename, _external=True)
 
-    # Add a message to show user
-    message = "🎉 QR generated! Please take a screenshot. A new code will be generated after a week."
-
     return jsonify({
         'code': code,
         'discount': discount,
         'qr': qr_url,
-        'message': message
+        'message': "🎉 QR generated! Take a screenshot. New code after a week."
     })
-
-
-
 
 @app.route('/ststic/qrcodes/<path:filename>')
 def static_qr(filename):
     return send_from_directory(app.config['QR_FOLDER'], filename)
-
 
 @app.route('/scan/<code>')
 def view_coupon(code):
@@ -255,11 +270,10 @@ def view_coupon(code):
     db.session.commit()
     return render_template('coupon/view_coupon.html', coupon=coupon)
 
-
 @app.route('/approve_coupon', methods=['POST'])
 @login_required
 def approve_coupon():
-    if getattr(current_user, 'role', None) not in ('vendor', 'sponsor', 'admin'):
+    if current_user.role not in ('vendor', 'sponsor', 'admin'):
         return jsonify({'error': 'not-authorized'}), 403
     code = request.json.get('code')
     c = Coupon.query.filter_by(code=code).first()
@@ -271,11 +285,10 @@ def approve_coupon():
     db.session.commit()
     return jsonify({'ok': True})
 
-
 @app.route('/reject_coupon', methods=['POST'])
 @login_required
 def reject_coupon():
-    if getattr(current_user, 'role', None) not in ('vendor', 'sponsor', 'admin'):
+    if current_user.role not in ('vendor', 'sponsor', 'admin'):
         return jsonify({'error': 'not-authorized'}), 403
     code = request.json.get('code')
     c = Coupon.query.filter_by(code=code).first()
@@ -284,7 +297,6 @@ def reject_coupon():
     c.status = 'rejected'
     db.session.commit()
     return jsonify({'ok': True})
-
 
 @app.route('/redeem', methods=['POST'])
 @login_required
@@ -297,15 +309,13 @@ def redeem():
         return render_template('coupon/redeem_result.html', success=False, message='Coupon not active')
     if c.status == 'used':
         return render_template('coupon/redeem_result.html', success=False, message='Coupon already used')
-    # mark used
     c.status = 'used'
     c.used_at = datetime.utcnow()
     db.session.commit()
     return render_template('coupon/redeem_result.html', success=True, coupon=c)
 
-
-# --- Run app
+# ---------------- RUN APP ----------------
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()   # create tables automatically if missing
+        db.create_all()
     app.run(debug=True)
