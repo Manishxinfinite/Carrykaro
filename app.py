@@ -227,17 +227,22 @@ def change_password():
 @login_required
 def generate_coupon_route():
     one_week_ago = datetime.utcnow() - timedelta(days=7)
+
     recent_coupon = Coupon.query.filter(
         Coupon.created_by_id == current_user.id,
         Coupon.created_at >= one_week_ago
-    ).first()
+    ).order_by(Coupon.created_at.desc()).first()
 
     if recent_coupon:
         return jsonify({
             'error': 'You can only generate one coupon per week.',
             'next_allowed': (recent_coupon.created_at + timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
         }), 400
+<<<<<<< HEAD
 
+=======
+    # Generate new coupon
+>>>>>>> a1b58a327d5e34dce150d5aa127622aae4ce6599
     code, discount = random_code()
     c = Coupon(code=code, discount=discount, created_by_id=current_user.id, created_at=datetime.utcnow())
     db.session.add(c)
