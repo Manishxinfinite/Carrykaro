@@ -20,12 +20,11 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-
 class Coupon(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(40), unique=True, nullable=False)
     discount = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.String(20), default='pending')  # pending, approved, rejected, used, expired
+    status = db.Column(db.String(20), default='pending')  # pending, approved, rejected, used
     created_by_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     approved_by = db.Column(db.String(20))  # 'vendor', 'sponsor', 'admin'
@@ -33,10 +32,9 @@ class Coupon(db.Model):
     used_at = db.Column(db.DateTime)
     scanned_count = db.Column(db.Integer, default=0)
 
-
 class ScanLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    coupon_id = db.Column(db.Integer, db.ForeignKey('coupon.id'))
-    user_agent = db.Column(db.String(255))
-    ip = db.Column(db.String(100))
+    coupon_id = db.Column(db.Integer, db.ForeignKey('coupon.id'), nullable=False)
+    user_agent = db.Column(db.String(200))
+    ip = db.Column(db.String(45))
     scanned_at = db.Column(db.DateTime, default=datetime.utcnow)

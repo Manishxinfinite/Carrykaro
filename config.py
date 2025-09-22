@@ -7,4 +7,4 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or \
         f"sqlite:///{os.path.join(BASE_DIR, 'app.db')}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    QR_FOLDER = os.path.join(BASE_DIR, 'ststic', 'qrcodes')
+    QR_FOLDER = os.path.join(BASE_DIR, 'static', 'qrcodes')

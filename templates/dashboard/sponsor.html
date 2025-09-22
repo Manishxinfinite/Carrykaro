@@ -1,16 +1,136 @@
-{% extends 'base.html' %}
-{% block content %}
-  <div class="text-center">
-    <h3>Sponsorship Dashboard</h3>
-    <p class="lead">Track the number of bags sold</p>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CarryKaro - Sponsorship Dashboard</title>
 
-    <!-- Display bags sold -->
-    <div class="card shadow p-4 mx-auto" style="max-width: 400px;">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo/browselogo1.png') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 50%, #c3e6cb 100%);
+      line-height: 1.6;
+      color: #333;
+      scroll-behavior: smooth;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* Header */
+    .header {
+      background: #f8f9fa;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      border-bottom: 1px solid rgb(206, 206, 206);
+    }
+    .nav-container {
+      display: flex; justify-content: space-between; align-items: center;
+      max-width: 1200px; margin: 0 auto;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.8rem; background: #fff; border-radius: 40px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); }
+    .logo-img { width: 50px; height: 50px; }
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+    .brand-text { font-family: 'Poppins', sans-serif; font-size: 1.4rem; font-weight: 600; display: flex; align-items: center; }
+    .brand-text .carry { color: #222; }
+    .brand-text .karo { color: #28a745; margin-left: 2px; }
+
+    .nav-actions { display: flex; gap: 1rem; }
+    .btn { padding: 0.5rem 1rem; border-radius: 25px; font-weight: 500; transition: all 0.3s ease; border: 2px solid; cursor: pointer; display: inline-block; }
+    .btn-outline { background: transparent; color: #28a745; border-color: #28a745; }
+    .btn-outline:hover { background: #28a745; color: white; }
+    .btn-primary { background: #28a745; color: white; border-color: #28a745; }
+    .btn-primary:hover { background: #218838; border-color: #218838; }
+
+    /* Navbar spacing */
+    .navbar { margin-top: 80px; }
+
+    /* Dashboard Card */
+    .dashboard-card {
+      max-width: 400px;
+      margin: auto;
+      border-radius: 15px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <nav class="nav-container">
+      <div class="logo">
+        <img src="{{ url_for('static', filename='logo/Mainlogo.png') }}" alt="Logo" class="logo-img">
+        <span class="brand-text"><span class="carry">Carry</span><span class="karo">Karo</span></span>
+      </div>
+      <div class="nav-actions">
+        {% if current_user.is_authenticated %}
+        
+          <a href="{{ url_for('logout') }}" class="btn btn-primary">Logout</a>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="btn btn-outline">Sign In</a>
+          <a href="{{ url_for('signup') }}" class="btn btn-primary">Sign Up</a>
+        {% endif %}
+      </div>
+    </nav>
+  </header>
+
+  <!-- Navbar -->
+  <!-- <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="{{ url_for('index') }}">
+        CarryKaro <span class="badge bg-success">Eco-Friendly</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
+              data-bs-target="#navbarNav" aria-controls="navbarNav" 
+              aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          {% if current_user.is_authenticated %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
+          {% else %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('signup') }}">Sign Up</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav> -->
+
+
+
+  <br><br><br><br>
+  <!-- Flash Messages -->
+  <div class="container mt-4">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-info">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Sponsorship Dashboard Content -->
+  <div class="container my-5 text-center">
+    <h3>Sponsorship Dashboard <br>
+      <br>
+      Hi, {{ current_user.username }}!
+    </h3>
+    
+    <p class="lead">Track the number of bags you ordered.</p>
+
+    <div class="card shadow-lg p-4 dashboard-card">
       <h4>Total Bags Sold</h4>
       <p class="display-4">{{ bags_sold }}</p>
 
       {% if current_user.is_admin %}
-        <!-- Edit option for admin -->
         <form method="POST" action="{{ url_for('update_bags') }}">
           <div class="form-group">
             <input type="number" name="bags_sold" value="{{ bags_sold }}" class="form-control" required>
@@ -20,4 +140,9 @@
       {% endif %}
     </div>
   </div>
-{% endblock %}
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

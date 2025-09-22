@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="/ststic/logo/browselogo1.png">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo/browselogo1.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <title>CarryKaro - Sustainable Carry Bags</title>
     <style>
@@ -19,18 +20,25 @@
             line-height: 1.6;
             color: #333;
             scroll-behavior: smooth;
+            overflow-x: hidden;
         }
 
-        /* Header Styles */
+        /* Enhanced Header Styles */
         .header {
-            background: #f8f9fa;
+            background: rgba(248, 249, 250, 0.95);
+            backdrop-filter: blur(20px);
             padding: 1rem 2rem;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             position: fixed;
             top: 0;
             width: 100%;
             z-index: 1000;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header:hover {
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
         }
 
         .nav-container {
@@ -41,17 +49,22 @@
             margin: 0 auto;
         }
 
-
         .logo {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             padding: 0.3rem 0.8rem;
-            background: #fff;
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
             border-radius: 40px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.8);
         }
 
+        .logo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+        }
 
         /* Import Google Font */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
@@ -62,26 +75,31 @@
             font-weight: 600;
             display: flex;
             align-items: center;
+            background: linear-gradient(135deg, #222 0%, #28a745 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .brand-text .carry {
             color: #222;
-            /* black */
         }
 
         .brand-text .karo {
             color: #28a745;
-            /* green */
             margin-left: 2px;
         }
-
 
         .logo-img {
             width: 50px;
             height: 50px;
             margin: 0;
+            transition: transform 0.3s ease;
         }
 
+        .logo:hover .logo-img {
+            transform: rotate(5deg) scale(1.05);
+        }
 
         .nav-menu {
             display: flex;
@@ -93,11 +111,30 @@
             text-decoration: none;
             color: #333;
             font-weight: 500;
-            transition: color 0.3s ease;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a:hover::after {
+            width: 100%;
+            left: 0;
         }
 
         .nav-menu a:hover {
             color: #28a745;
+            transform: translateY(-1px);
         }
 
         .nav-actions {
@@ -106,46 +143,94 @@
         }
 
         .btn {
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
             text-decoration: none;
             font-weight: 500;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             border: 2px solid;
             cursor: pointer;
             display: inline-block;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         .btn-outline {
             background: transparent;
             color: #28a745;
             border-color: #28a745;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
         }
 
         .btn-outline:hover {
-            background: #28a745;
+            background: linear-gradient(135deg, #28a745, #20c997);
             color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
         }
 
         .btn-primary {
-            background: #28a745;
+            background: linear-gradient(135deg, #28a745, #20c997);
             color: white;
             border-color: #28a745;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
         }
 
         .btn-primary:hover {
-            background: #218838;
-            border-color: #218838;
+            background: linear-gradient(135deg, #218838, #1ea085);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.5);
         }
 
-        /* Hero Section */
+        /* Enhanced Hero Section */
         .hero {
             margin-top: 80px;
-            min-height: 90vh;
+            min-height: 95vh;
             display: flex;
             align-items: center;
             padding: 2rem;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f0f8f0 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(40, 167, 69, 0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(2deg);
+            }
         }
 
         .hero-container {
@@ -155,23 +240,44 @@
             max-width: 1200px;
             margin: 0 auto;
             align-items: center;
+            position: relative;
+            z-index: 1;
         }
 
         .hero-content h1 {
-            font-size: 3rem;
+            font-size: 3.2rem;
             margin-bottom: 1.5rem;
             color: #333;
             line-height: 1.2;
+            position: relative;
         }
 
         .hero-content h1 .highlight {
-            color: #28a745;
+            background: linear-gradient(135deg, #28a745, #20c997, #17a2b8);
+            background-size: 200% 200%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
         }
 
         .hero-content p {
             font-size: 1.1rem;
             margin-bottom: 2rem;
             color: #666;
+            line-height: 1.8;
         }
 
         .hero-actions {
@@ -187,12 +293,27 @@
 
         .stat-item {
             text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
         .stat-number {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            color: #28a745;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin-bottom: 0.5rem;
         }
 
@@ -203,38 +324,170 @@
 
         .hero-image {
             position: relative;
-            height: 500px;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            height: 520px;
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
             overflow: hidden;
-            /* ensures image fits rounded corners */
+            transition: all 0.4s ease;
         }
 
-        .hero-image .hero-img {
+        .hero-image:hover {
+            transform: translateY(-10px) rotateY(5deg);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.2);
+        }
+
+        .image-carousel {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .carousel-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        .carousel-slide.active {
+            opacity: 1;
+        }
+
+        .carousel-slide img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            /* keeps aspect ratio and fills container */
             display: block;
+        }
+
+        .hero-image:hover .carousel-slide.active img {
+            transform: scale(1.05);
+        }
+
+        /* Carousel Navigation Dots */
+        .carousel-dots {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .carousel-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-dot.active {
+            background: #28a745;
+            border-color: #28a745;
+            transform: scale(1.2);
+        }
+
+        .carousel-dot:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: scale(1.1);
+        }
+
+        /* Carousel Progress Bar */
+        .carousel-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: rgba(40, 167, 69, 0.3);
+            border-radius: 0 0 25px 25px;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .carousel-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* Carousel Controls */
+        .carousel-controls {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            opacity: 0;
+            z-index: 10;
+        }
+
+        .hero-image:hover .carousel-controls {
+            opacity: 1;
+        }
+
+        .carousel-prev {
+            left: 15px;
+        }
+
+        .carousel-next {
+            right: 15px;
+        }
+
+        .carousel-controls:hover {
+            background: rgba(40, 167, 69, 0.8);
+            transform: translateY(-50%) scale(1.1);
         }
 
         .shipping-badge {
             position: absolute;
             bottom: 20px;
             right: 20px;
-            background: white;
-            padding: 1rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
+            backdrop-filter: blur(15px);
+            padding: 0.8rem;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            font-size: 0.7rem;
             color: #28a745;
             font-weight: bold;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: pulse 2s infinite;
         }
 
-        /* Why Choose Section */
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        /* Enhanced Why Choose Section */
         .why-choose {
             padding: 5rem 2rem;
-            background: #f0f8f0;
+            background: linear-gradient(135deg, #f0f8f0 0%, #e8f5e8 100%);
+            position: relative;
         }
 
         .section-container {
@@ -244,9 +497,12 @@
         }
 
         .section-title {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             margin-bottom: 1rem;
-            color: #28a745;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .section-subtitle {
@@ -260,39 +516,66 @@
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 2rem;
             margin-top: 3rem;
         }
 
         .feature-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+            backdrop-filter: blur(20px);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(40, 167, 69, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .feature-card:hover::before {
+            left: 100%;
         }
 
         .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
         }
 
         .feature-icon {
-            width: 60px;
-            height: 60px;
-            background: #e8f5e8;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #e8f5e8, #d4edda);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 1.5rem;
+            margin: 0 auto 1.5rem;
+            font-size: 1.8rem;
             color: #28a745;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: rotateY(180deg) scale(1.1);
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
         }
 
         .feature-title {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: bold;
             margin-bottom: 1rem;
             color: #28a745;
@@ -300,13 +583,24 @@
 
         .feature-description {
             color: #666;
-            line-height: 1.6;
+            line-height: 1.7;
         }
 
-        /* Impact Section */
+        /* Enhanced Impact Section */
         .impact {
             padding: 5rem 2rem;
-            background: white;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            position: relative;
+        }
+
+        .impact::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #28a745, transparent);
         }
 
         .impact-container {
@@ -322,6 +616,7 @@
             font-size: 1.1rem;
             color: #666;
             margin-bottom: 2rem;
+            line-height: 1.8;
         }
 
         .impact-stats {
@@ -332,12 +627,25 @@
 
         .impact-stat {
             text-align: center;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.05), rgba(32, 201, 151, 0.05));
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(40, 167, 69, 0.1);
+        }
+
+        .impact-stat:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(32, 201, 151, 0.1));
         }
 
         .impact-stat-number {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: bold;
-            color: #28a745;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin-bottom: 0.5rem;
         }
 
@@ -347,28 +655,58 @@
         }
 
         .sustainability-card {
-            background: #e8f5e8;
-            padding: 2rem;
-            border-radius: 15px;
+            background: linear-gradient(135deg, #e8f5e8, #d4edda);
+            padding: 2.5rem;
+            border-radius: 20px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .sustainability-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(40, 167, 69, 0.1) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .sustainability-title {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: bold;
             color: #28a745;
             margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
         }
 
         .sustainability-description {
             color: #666;
             margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
         }
 
         .sustainability-features {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.8rem;
+            position: relative;
+            z-index: 1;
         }
 
         .sustainability-feature {
@@ -377,19 +715,97 @@
             justify-content: center;
             gap: 0.5rem;
             color: #28a745;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .sustainability-feature:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateX(5px);
         }
 
         .sustainability-feature::before {
             content: "✓";
             font-weight: bold;
+            color: #28a745;
         }
 
-        /* Footer */
+        /* Enhanced View Products Section */
+        .view-products-section {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+        }
+
+        .view-products-btn {
+            display: inline-block;
+            padding: 1.2rem 2.5rem;
+            background: transparent;
+            color: #28a745;
+            border: 2px solid #28a745;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .view-products-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            transition: left 0.4s ease;
+            z-index: -1;
+        }
+
+        .view-products-btn:hover::before {
+            left: 0;
+        }
+
+        .view-products-btn:hover {
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.4);
+        }
+
+        /* Enhanced Footer */
         .footer {
-            background: #1a5f1a;
+            background: linear-gradient(135deg, #1a5f1a, #155d15);
             color: white;
             padding: 3rem 2rem 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #28a745, #20c997, #17a2b8, #20c997, #28a745);
+            background-size: 200% 100%;
+            animation: gradientMove 3s linear infinite;
+        }
+
+        @keyframes gradientMove {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
         }
 
         .footer-container {
@@ -403,6 +819,7 @@
         .footer-section h4 {
             margin-bottom: 1rem;
             font-size: 1.1rem;
+            color: #ffffff;
         }
 
         .footer-section ul {
@@ -416,11 +833,13 @@
         .footer-section ul li a {
             color: #ccc;
             text-decoration: none;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
+            position: relative;
         }
 
         .footer-section ul li a:hover {
-            color: white;
+            color: #20c997;
+            transform: translateX(5px);
         }
 
         .footer-brand {
@@ -434,6 +853,19 @@
         .footer-brand::before {
             content: "🌿";
             margin-right: 0.5rem;
+            animation: sway 2s ease-in-out infinite;
+        }
+
+        @keyframes sway {
+
+            0%,
+            100% {
+                transform: rotate(-5deg);
+            }
+
+            50% {
+                transform: rotate(5deg);
+            }
         }
 
         .social-icons {
@@ -443,20 +875,23 @@
         }
 
         .social-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.1);
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
             color: white;
-            transition: background 0.3s ease;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .social-icon:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, #28a745, #20c997);
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
         }
 
         .newsletter {
@@ -475,23 +910,32 @@
             border: none;
             border-radius: 25px;
             outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+
+        .newsletter-input:focus {
+            background: white;
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.3);
         }
 
         .newsletter-btn {
             padding: 0.75rem 1.5rem;
-            background: #28a745;
+            background: linear-gradient(135deg, #28a745, #20c997);
             color: white;
             border: none;
             border-radius: 25px;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: all 0.3s ease;
+            font-weight: bold;
         }
 
         .newsletter-btn:hover {
-            background: #218838;
+            background: linear-gradient(135deg, #218838, #1ea085);
+            transform: scale(1.05);
         }
 
-        /* Responsive Design */
+        /* Enhanced Responsive Design */
         @media (max-width: 768px) {
 
             .hero-container,
@@ -501,11 +945,20 @@
             }
 
             .hero-content h1 {
-                font-size: 2rem;
+                font-size: 2.2rem;
             }
 
             .nav-menu {
                 display: none;
+            }
+
+            .nav-actions {
+                gap: 0.5rem;
+            }
+
+            .nav-actions .btn {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.9rem;
             }
 
             .footer-container {
@@ -518,13 +971,18 @@
                 flex-direction: column;
                 gap: 1rem;
             }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
         }
 
-        /* Scroll Animations */
+        /* Enhanced Scroll Animations */
         .fade-in {
             opacity: 0;
             transform: translateY(30px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .fade-in.visible {
@@ -532,28 +990,21 @@
             transform: translateY(0);
         }
 
-        /* View All Products Button */
-        .view-products-section {
-            text-align: center;
-            padding: 2rem;
-            background: white;
+        /* Loading Animation */
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+
+            100% {
+                background-position: 1000px 0;
+            }
         }
 
-        .view-products-btn {
-            display: inline-block;
-            padding: 1rem 2rem;
-            background: transparent;
-            color: #28a745;
-            border: 2px solid #28a745;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .view-products-btn:hover {
-            background: #28a745;
-            color: white;
+        .shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
         }
     </style>
 </head>
@@ -562,9 +1013,8 @@
     <!-- Header -->
     <header class="header">
         <nav class="nav-container">
-            <!-- <a href="#" class="logo">CarryKaro</a> -->
             <div class="logo">
-                <img src="/ststic/logo/Mainlogo.png" alt="Logo" class="logo-img">
+                <img src="{{ url_for('static', filename='logo/Mainlogo.png') }}" alt="Logo" class="logo-img">
                 <span class="brand-text">
                     <span class="carry">Carry</span><span class="karo">Karo</span>
                 </span>
@@ -573,17 +1023,14 @@
             <ul class="nav-menu">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#about">About</a></li>
-
             </ul>
             <div class="nav-actions">
-
                 <a href="{{ url_for('login') }}" class="btn btn-primary">Sign In</a>
                 <a href="{{ url_for('signup') }}" class="btn btn-primary">Sign Up</a>
                 <a href="{{ url_for('offers') }}" class="btn btn-outline">QR Offers</a>
             </div>
         </nav>
     </header>
-
 
     <!-- Hero Section -->
     <section id="home" class="hero">
@@ -611,12 +1058,66 @@
                 </div>
             </div>
             <div class="hero-image fade-in">
-                <img src="{{ url_for('static', filename='images/carrykaro.jpg') }}" alt="Hero Image" class="hero-img">
+                <div class="image-carousel">
+                    <div class="carousel-slide active">
+                        <img src="{{ url_for('static', filename='images/carrykaro.jpg') }}" alt="CarryKaro Bag 1">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="{{ url_for('static', filename='images/carrykaro2.jpg') }}" alt="CarryKaro Bag 2">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="{{ url_for('static', filename='images/carrykaro3.jpg') }}" alt="CarryKaro Bag 3">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="{{ url_for('static', filename='images/carrykaro4.jpg') }}" alt="CarryKaro Bag 4">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="{{ url_for('static', filename='images/carrykaro5.jpg') }}" alt="CarryKaro Bag 5">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="{{ url_for('static', filename='images/carrykaro6.jpg') }}" alt="CarryKaro Bag 6">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="{{ url_for('static', filename='images/carrykaro7.jpg') }}" alt="CarryKaro Bag 7">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="{{ url_for('static', filename='images/carrykaro8.jpg') }}" alt="CarryKaro Bag 8">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="{{ url_for('static', filename='images/carrykaro9.jpg') }}" alt="CarryKaro Bag 9">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="{{ url_for('static', filename='images/carrykaro10.jpg') }}" alt="CarryKaro Bag 10">
+                    </div>
+                </div>
+
+                <!-- Carousel Controls -->
+                <button class="carousel-controls carousel-prev">‹</button>
+                <button class="carousel-controls carousel-next">›</button>
+
+                <!-- Carousel Dots -->
+                <div class="carousel-dots">
+                    <div class="carousel-dot active" data-slide="0"></div>
+                    <div class="carousel-dot" data-slide="1"></div>
+                    <div class="carousel-dot" data-slide="2"></div>
+                    <div class="carousel-dot" data-slide="3"></div>
+                    <div class="carousel-dot" data-slide="4"></div>
+                    <div class="carousel-dot" data-slide="5"></div>
+                    <div class="carousel-dot" data-slide="6"></div>
+                    <div class="carousel-dot" data-slide="7"></div>
+                    <div class="carousel-dot" data-slide="8"></div>
+                    <div class="carousel-dot" data-slide="9"></div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="carousel-progress">
+                    <div class="carousel-progress-bar"></div>
+                </div>
+
                 <div class="shipping-badge">
                     Contact us for Order.
                 </div>
             </div>
-
         </div>
     </section>
 
@@ -671,7 +1172,7 @@
 
                 <div class="impact-stats">
                     <div class="impact-stat">
-                        <div class="impact-stat-number">50,000+</div>
+                        <div class="impact-stat-number">50000+</div>
                         <div class="impact-stat-label">Plastic bags avoided</div>
                     </div>
                     <div class="impact-stat">
@@ -702,9 +1203,15 @@
                 <p>Sustainable carry bags for a greener tomorrow. Join us in making environmentally conscious choices.
                 </p>
                 <div class="social-icons">
-                    <a href="#" class="social-icon">f</a>
-                    <a href="#" class="social-icon">i</a>
-                    <a href="#" class="social-icon">t</a>
+                    <a href="#" class="social-icon" aria-label="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://www.instagram.com/official_carrykaro/" class="social-icon" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="social-icon" aria-label="Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
                 </div>
             </div>
 
@@ -747,30 +1254,144 @@
     </footer>
 
     <script>
-        // Smooth scrolling for navigation links
+        // Image Carousel Functionality
+        class ImageCarousel {
+            constructor() {
+                this.slides = document.querySelectorAll('.carousel-slide');
+                this.dots = document.querySelectorAll('.carousel-dot');
+                this.prevBtn = document.querySelector('.carousel-prev');
+                this.nextBtn = document.querySelector('.carousel-next');
+                this.progressBar = document.querySelector('.carousel-progress-bar');
+                this.currentSlide = 0;
+                this.autoplayInterval = null;
+                this.progressInterval = null;
+                this.slideInterval = 3000; // 3 seconds
+
+                this.init();
+            }
+
+            init() {
+                // Start autoplay
+                this.startAutoplay();
+
+                // Add event listeners
+                this.prevBtn.addEventListener('click', () => this.prevSlide());
+                this.nextBtn.addEventListener('click', () => this.nextSlide());
+
+                // Add dot navigation
+                this.dots.forEach((dot, index) => {
+                    dot.addEventListener('click', () => this.goToSlide(index));
+                });
+
+                // Pause on hover
+                const carousel = document.querySelector('.image-carousel');
+                carousel.addEventListener('mouseenter', () => this.pauseAutoplay());
+                carousel.addEventListener('mouseleave', () => this.startAutoplay());
+            }
+
+            goToSlide(slideIndex) {
+                // Remove active class from current slide and dot
+                this.slides[this.currentSlide].classList.remove('active');
+                this.dots[this.currentSlide].classList.remove('active');
+
+                // Set new current slide
+                this.currentSlide = slideIndex;
+
+                // Add active class to new slide and dot
+                this.slides[this.currentSlide].classList.add('active');
+                this.dots[this.currentSlide].classList.add('active');
+
+                // Reset progress bar
+                this.resetProgress();
+            }
+
+            nextSlide() {
+                const nextIndex = (this.currentSlide + 1) % this.slides.length;
+                this.goToSlide(nextIndex);
+            }
+
+            prevSlide() {
+                const prevIndex = (this.currentSlide - 1 + this.slides.length) % this.slides.length;
+                this.goToSlide(prevIndex);
+            }
+
+            startAutoplay() {
+                this.autoplayInterval = setInterval(() => {
+                    this.nextSlide();
+                }, this.slideInterval);
+
+                this.startProgress();
+            }
+
+            pauseAutoplay() {
+                if (this.autoplayInterval) {
+                    clearInterval(this.autoplayInterval);
+                    this.autoplayInterval = null;
+                }
+
+                if (this.progressInterval) {
+                    clearInterval(this.progressInterval);
+                    this.progressInterval = null;
+                }
+
+                this.resetProgress();
+            }
+
+            startProgress() {
+                let progress = 0;
+                const incrementTime = 50; // Update every 50ms
+                const increment = (incrementTime / this.slideInterval) * 100;
+
+                this.progressInterval = setInterval(() => {
+                    progress += increment;
+                    this.progressBar.style.width = progress + '%';
+
+                    if (progress >= 100) {
+                        progress = 0;
+                        this.progressBar.style.width = '0%';
+                    }
+                }, incrementTime);
+            }
+
+            resetProgress() {
+                this.progressBar.style.width = '0%';
+            }
+        }
+
+        // Initialize carousel when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const carousel = new ImageCarousel();
+        });
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
+                    const headerOffset = 80;
+                    const elementPosition = target.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
                     });
                 }
             });
         });
 
-        // Scroll animations
+        // Enhanced scroll animations with stagger effect
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
         };
 
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
+            entries.forEach((entry, index) => {
                 if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
+                    // Add a slight delay for staggered animation
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 100);
                 }
             });
         }, observerOptions);
@@ -780,37 +1401,243 @@
             observer.observe(el);
         });
 
-        // Header scroll effect
+        // Enhanced header scroll effect with parallax
+        let lastScrollY = window.scrollY;
         window.addEventListener('scroll', () => {
             const header = document.querySelector('.header');
-            if (window.scrollY > 100) {
+            const currentScrollY = window.scrollY;
+
+            if (currentScrollY > 100) {
                 header.style.background = 'rgba(248, 249, 250, 0.95)';
-                header.style.backdropFilter = 'blur(10px)';
+                header.style.backdropFilter = 'blur(20px)';
+                header.style.borderBottom = '1px solid rgba(255, 255, 255, 0.2)';
             } else {
-                header.style.background = '#f8f9fa';
-                header.style.backdropFilter = 'none';
+                header.style.background = 'rgba(248, 249, 250, 0.95)';
+                header.style.backdropFilter = 'blur(20px)';
+                header.style.borderBottom = '1px solid rgba(255, 255, 255, 0.2)';
             }
+
+            // Hide/show header on scroll
+            if (currentScrollY > lastScrollY && currentScrollY > 200) {
+                header.style.transform = 'translateY(-100%)';
+            } else {
+                header.style.transform = 'translateY(0)';
+            }
+            lastScrollY = currentScrollY;
         });
 
-        // Newsletter form submission
+        // Enhanced newsletter form submission
         document.querySelector('.newsletter-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = e.target.querySelector('.newsletter-input').value;
+            const btn = e.target.querySelector('.newsletter-btn');
+
             if (email) {
-                alert('Thank you for subscribing to our newsletter!');
-                e.target.querySelector('.newsletter-input').value = '';
+                // Add loading state
+                btn.innerHTML = 'Subscribing...';
+                btn.disabled = true;
+
+                // Simulate API call
+                setTimeout(() => {
+                    alert('Thank you for subscribing to our newsletter!');
+                    e.target.querySelector('.newsletter-input').value = '';
+                    btn.innerHTML = 'Subscribe';
+                    btn.disabled = false;
+                }, 1500);
             }
         });
 
-        // Add some interactive effects
+        // Enhanced interactive effects for feature cards
         document.querySelectorAll('.feature-card').forEach(card => {
-            card.addEventListener('mouseenter', () => {
-                card.style.transform = 'translateY(-10px) scale(1.02)';
+            card.addEventListener('mouseenter', (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                card.style.transform = `translateY(-10px) scale(1.02)`;
+                card.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(40, 167, 69, 0.1), rgba(255, 255, 255, 0.9))`;
             });
 
             card.addEventListener('mouseleave', () => {
                 card.style.transform = 'translateY(0) scale(1)';
+                card.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7))';
             });
+        });
+
+        // Parallax effect for hero section
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const hero = document.querySelector('.hero');
+            const heroContent = document.querySelector('.hero-content');
+            const heroImage = document.querySelector('.hero-image');
+
+            if (hero) {
+                heroContent.style.transform = `translateY(${scrolled * 0.1}px)`;
+                heroImage.style.transform = `translateY(${scrolled * -0.1}px)`;
+            }
+        });
+
+        // Enhanced typing effect that handles HTML content
+        function typeWriter(element, speed = 50) {
+            const fullText = 'Carry the Future with ';
+            const highlightText = 'Sustainable Style';
+            let i = 0;
+            element.innerHTML = '';
+
+            function type() {
+                if (i < fullText.length) {
+                    element.innerHTML = fullText.substring(0, i + 1);
+                    i++;
+                    setTimeout(type, speed);
+                } else if (i === fullText.length) {
+                    // Add the highlighted span
+                    element.innerHTML = fullText + '<span class="highlight">' + highlightText + '</span>';
+                    i++;
+                    // Start typing the highlighted text
+                    let j = 0;
+                    const highlightSpan = element.querySelector('.highlight');
+                    highlightSpan.innerHTML = '';
+
+                    function typeHighlight() {
+                        if (j < highlightText.length) {
+                            highlightSpan.innerHTML = highlightText.substring(0, j + 1);
+                            j++;
+                            setTimeout(typeHighlight, speed);
+                        }
+                    }
+                    setTimeout(typeHighlight, speed);
+                }
+            }
+            type();
+        }
+
+        // Initialize typing effect when hero is visible
+        const heroTitle = document.querySelector('.hero-content h1');
+        const heroObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        typeWriter(entry.target, 50);
+                    }, 500);
+                    heroObserver.unobserve(entry.target);
+                }
+            });
+        });
+
+        if (heroTitle) {
+            heroObserver.observe(heroTitle);
+        }
+
+        // Add counter animation for stats
+        function animateCounter(element, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const current = Math.floor(progress * (end - start) + start);
+                element.textContent = current + (element.dataset.suffix || '');
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Initialize counter animations
+        const statObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const statNumber = entry.target.querySelector('.stat-number');
+                    const impactNumber = entry.target.querySelector('.impact-stat-number');
+
+                    if (statNumber && !statNumber.dataset.animated) {
+                        const text = statNumber.textContent;
+                        const num = parseInt(text.replace(/\D/g, ''));
+                        statNumber.dataset.suffix = text.replace(/\d/g, '');
+                        statNumber.dataset.animated = 'true';
+                        animateCounter(statNumber, 0, num, 2000);
+                    }
+
+                    if (impactNumber && !impactNumber.dataset.animated) {
+                        const text = impactNumber.textContent;
+                        const num = parseInt(text.replace(/\D/g, ''));
+                        impactNumber.dataset.suffix = text.replace(/\d/g, '');
+                        impactNumber.dataset.animated = 'true';
+                        animateCounter(impactNumber, 0, num, 2000);
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('.stat-item, .impact-stat').forEach(stat => {
+            statObserver.observe(stat);
+        });
+
+        // Add cursor trail effect
+        const cursor = document.createElement('div');
+        cursor.className = 'cursor-trail';
+        cursor.style.cssText = `
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(40, 167, 69, 0.6), transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s ease;
+        `;
+        document.body.appendChild(cursor);
+
+        let mouseX = 0, mouseY = 0;
+        let cursorX = 0, cursorY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function updateCursor() {
+            cursorX += (mouseX - cursorX) * 0.1;
+            cursorY += (mouseY - cursorY) * 0.1;
+            cursor.style.left = cursorX - 10 + 'px';
+            cursor.style.top = cursorY - 10 + 'px';
+            requestAnimationFrame(updateCursor);
+        }
+        updateCursor();
+
+        // Add loading animation
+        window.addEventListener('load', () => {
+            document.body.style.overflow = 'visible';
+            const loadingScreen = document.createElement('div');
+            loadingScreen.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #28a745, #20c997);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                transition: opacity 0.5s ease;
+            `;
+            loadingScreen.innerHTML = `
+                <div style="text-align: center; color: white;">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">🌱</div>
+                    <div style="font-size: 1.5rem; font-weight: bold;">CarryKaro</div>
+                    <div style="margin-top: 1rem; font-size: 0.9rem;">Loading sustainable future...</div>
+                </div>
+            `;
+
+            document.body.appendChild(loadingScreen);
+
+            setTimeout(() => {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(loadingScreen);
+                }, 500);
+            }, 1500);
         });
     </script>
 </body>

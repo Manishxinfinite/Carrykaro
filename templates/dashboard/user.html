@@ -1,12 +1,776 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="card">
-  <div class="card-body">
-    <h4>Your dashboard</h4>
-    <p>MAKE SURE TO TAKE SCREENSHOT OF CODE TO SHOW AT STORE
-      YOU CAN'T GENERATE NEW TILL NEXT WEEK.</p>
-    <button id="generateCoupon" class="btn btn-success">Get Coupon (Generate QR)</button>
-    <div id="couponArea" class="mt-3"></div>
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CarryKaro - User Dashboard</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo/browselogo1.png') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 50%, #c3e6cb 100%);
+      line-height: 1.6;
+      color: #333;
+      scroll-behavior: smooth;
+      min-height: 100vh;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Header Styles */
+    .header {
+      background: #f8f9fa;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      border-bottom: 1px solid rgb(206, 206, 206);
+    }
+
+    .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.3rem 0.8rem;
+      background: #fff;
+      border-radius: 40px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo-img {
+      width: 50px;
+      height: 50px;
+      margin: 0;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+
+    .brand-text {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+    }
+
+    .brand-text .carry {
+      color: #222;
+    }
+
+    .brand-text .karo {
+      color: #28a745;
+      margin-left: 2px;
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      border: 2px solid;
+      cursor: pointer;
+      display: inline-block;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #28a745;
+      border-color: #28a745;
+    }
+
+    .btn-outline:hover {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-primary {
+      background: #28a745;
+      color: white;
+      border-color: #28a745;
+    }
+
+    .btn-primary:hover {
+      background: #218838;
+      border-color: #218838;
+    }
+
+    /* Container padding */
+    .container {
+      margin-top: 120px;
+    }
+
+    /* Coupon Card Styles */
+    .coupon-card {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      border-radius: 15px;
+      padding: 2rem;
+      margin-top: 1.5rem;
+      box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .coupon-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .coupon-card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .coupon-code {
+      font-size: 2rem;
+      font-weight: bold;
+      letter-spacing: 3px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 1rem;
+      border-radius: 10px;
+      border: 2px dashed rgba(255, 255, 255, 0.5);
+      margin: 1rem 0;
+      position: relative;
+      user-select: all;
+      cursor: pointer;
+    }
+
+    .coupon-code:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .coupon-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      color: white;
+      padding: 0.7rem 1.5rem;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .copy-success {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #28a745;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 25px;
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 10000;
+      font-size: 1.2rem;
+      box-shadow: 0 10px 40px rgba(40, 167, 69, 0.4);
+      pointer-events: none;
+    }
+
+    .copy-success.show {
+      opacity: 1;
+    }
+
+    .copy-success i {
+      font-size: 1.5rem;
+      margin-right: 0.5rem;
+    }
+
+    .discount-badge {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+
+    .eco-badge {
+      background: #155724;
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      margin-left: 0.5rem;
+    }
+
+    /* Animation */
+    @keyframes float {
+      0%, 100% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+      50% {
+        transform: translate(20px, -20px) rotate(5deg);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in-up {
+      animation: fadeInUp 0.6s ease;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .coupon-code {
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+      }
+      
+      .coupon-actions {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .action-btn {
+        width: 200px;
+        justify-content: center;
+      }
+    }
+
+    /* Toast notification */
+    .toast-container {
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      z-index: 1100;
+    }
+
+    .toast {
+      background: #28a745;
+      color: white;
+      border: none;
+    }
+
+    /* Copy hint */
+    .copy-hint {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header with logo + logout -->
+  <header class="header">
+    <nav class="nav-container">
+      <div class="logo">
+        <img src="{{ url_for('static', filename='logo/Mainlogo.png') }}" alt="Logo" class="logo-img">
+        <span class="brand-text">
+          <span class="carry">Carry</span><span class="karo">Karo</span>
+        </span>
+      </div>
+
+      <div class="nav-actions">
+        <a href="{{ url_for('logout') }}" class="btn btn-outline">
+          <i class="fas fa-sign-out-alt me-2"></i>Logout
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Bootstrap navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark mt-5">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('index') }}">
+        <i class="fas fa-leaf me-2"></i>CarryKaro <span class="eco-badge">Eco-Friendly</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('logout') }}">
+              <i class="fas fa-sign-out-alt me-2"></i>Logout
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash messages + User Dashboard -->
+  <div class="container my-5">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for m in messages %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+      <i class="fas fa-info-circle me-2"></i>{{ m }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="card shadow-lg rounded-3">
+      <div class="card-body">
+        <h4 class="mb-3">
+          <i class="fas fa-tachometer-alt me-2"></i>Your Dashboard <br>   <br>
+          
+          Hi, {{ current_user.username }}!
+        </h4>
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Important:</strong> Each user can generate only <strong>ONE</strong> coupon. 
+          Make sure to save your coupon code safely as you cannot generate another one.
+        </div>
+        <button id="generateCoupon" class="btn btn-success btn-lg">
+          <i class="fas fa-ticket-alt me-2"></i>Generate My Coupon
+        </button>
+        <div id="couponArea" class="mt-3"></div>
+      </div>
+    </div>
   </div>
-</div>
-{% endblock %}
+
+  <!-- Copy Success Notification -->
+  <div class="copy-success" id="copySuccess">
+    <i class="fas fa-check-circle"></i>Coupon Code Copied!
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast-container">
+    <div id="copyToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-body">
+        <i class="fas fa-check-circle me-2"></i>Coupon code copied to clipboard!
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('generateCoupon').addEventListener('click', async () => {
+      const couponArea = document.getElementById('couponArea');
+      const generateBtn = document.getElementById('generateCoupon');
+      
+      // Show loading state
+      generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+      generateBtn.disabled = true;
+      couponArea.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Generating your coupon...</div>';
+      
+      try {
+        const response = await fetch('{{ url_for("generate_coupon_route") }}', { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.error) {
+          couponArea.innerHTML = `
+            <div class="alert alert-warning fade-in-up">
+              <div class="text-center">
+                <i class="fas fa-exclamation-circle fa-3x mb-3 text-warning"></i>
+                <h5><strong>Coupon Already Generated!</strong></h5>
+                <p class="mb-3">${data.error}</p>
+                <div class="mt-3">
+                  <i class="fas fa-clock me-2"></i>
+                  <strong>Next allowed:</strong> ${data.next_allowed || 'Contact support for details'}
+                </div>
+                <hr class="my-3">
+                <div class="text-muted">
+                  <i class="fas fa-lightbulb me-2"></i>
+                  <small>If you've lost your coupon code, please contact our support team.</small>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          // Change button text and disable it
+          generateBtn.innerHTML = '<i class="fas fa-ban me-2"></i>Coupon Already Generated';
+          generateBtn.classList.remove('btn-success');
+          generateBtn.classList.add('btn-secondary');
+          generateBtn.disabled = true;
+        } else {
+          couponArea.innerHTML = `
+            <div class="coupon-card fade-in-up">
+              <div class="text-center">
+                <div class="discount-badge">
+                  <i class="fas fa-percentage me-2"></i>${data.discount}% OFF
+                </div>
+                <h5><i class="fas fa-gift me-2"></i>Your Exclusive Coupon Code</h5>
+                <div class="coupon-code" id="couponCodeText" onclick="copyCouponCode('${data.code}')" title="Click to copy">
+                  <span id="codeText">${data.code}</span>
+                  <div class="copy-hint">
+                    <i class="fas fa-mouse-pointer"></i> Click code to copy
+                  </div>
+                </div>
+                <div class="coupon-actions">
+                  <button class="action-btn" onclick="copyCouponCode('${data.code}')" id="copyBtn">
+                    <i class="fas fa-copy"></i>Copy Code
+                  </button>
+                  <button class="action-btn" onclick="downloadCoupon('${data.code}', '${data.discount}')">
+                    <i class="fas fa-download"></i>Download
+                  </button>
+                  <button class="action-btn" onclick="printCoupon('${data.code}', '${data.discount}')">
+                    <i class="fas fa-print"></i>Print
+                  </button>
+                  <button class="action-btn" onclick="shareCoupon('${data.code}', '${data.discount}')">
+                    <i class="fas fa-share"></i>Share
+                  </button>
+                </div>
+                <small class="mt-3 d-block opacity-75">
+                  <i class="fas fa-star me-1"></i>Your exclusive one-time coupon - save it safely!
+                </small>
+              </div>
+            </div>
+          `;
+          
+          // Change generate button after successful generation
+          generateBtn.innerHTML = '<i class="fas fa-check me-2"></i>Coupon Generated Successfully';
+          generateBtn.classList.remove('btn-success');
+          generateBtn.classList.add('btn-secondary');
+          generateBtn.disabled = true;
+        }
+      } catch (err) {
+        couponArea.innerHTML = `
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong>Error:</strong> Something went wrong. Please try again.
+          </div>
+        `;
+        // Re-enable button on error
+        generateBtn.innerHTML = '<i class="fas fa-ticket-alt me-2"></i>Generate My Coupon';
+        generateBtn.disabled = false;
+      }
+    });
+
+    // Enhanced copy coupon code function
+    function copyCouponCode(code) {
+      // Try modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code).then(() => {
+          showCopySuccess();
+        }).catch((err) => {
+          // Fallback if clipboard API fails
+          fallbackCopyToClipboard(code);
+        });
+      } else {
+        // Fallback for older browsers or non-secure contexts
+        fallbackCopyToClipboard(code);
+      }
+    }
+
+    // Fallback copy method
+    function fallbackCopyToClipboard(text) {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.top = '0';
+      textArea.style.left = '0';
+      textArea.style.width = '2em';
+      textArea.style.height = '2em';
+      textArea.style.padding = '0';
+      textArea.style.border = 'none';
+      textArea.style.outline = 'none';
+      textArea.style.boxShadow = 'none';
+      textArea.style.background = 'transparent';
+      
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          showCopySuccess();
+        } else {
+          alert('Failed to copy coupon code. Please select and copy manually: ' + text);
+        }
+      } catch (err) {
+        alert('Failed to copy coupon code. Please select and copy manually: ' + text);
+      }
+      
+      document.body.removeChild(textArea);
+    }
+
+    // Show copy success notification
+    function showCopySuccess() {
+      // Show the fixed position success message
+      const copySuccess = document.getElementById('copySuccess');
+      copySuccess.classList.add('show');
+      
+      // Also show toast notification
+      const toast = new bootstrap.Toast(document.getElementById('copyToast'));
+      toast.show();
+      
+      // Change button text temporarily
+      const copyBtn = document.getElementById('copyBtn');
+      if (copyBtn) {
+        const originalHTML = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="fas fa-check"></i>Copied!';
+        
+        setTimeout(() => {
+          copyBtn.innerHTML = originalHTML;
+        }, 2000);
+      }
+      
+      // Hide success message after 2 seconds
+      setTimeout(() => {
+        copySuccess.classList.remove('show');
+      }, 2000);
+    }
+
+    // Download coupon function
+    function downloadCoupon(code, discount) {
+      const couponText = `
+🎉 CARRYKARO COUPON 🎉
+━━━━━━━━━━━━━━━━━━━━━━━━
+Coupon Code: ${code}
+Discount: ${discount}% OFF
+━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Valid for eco-friendly shopping
+🌱 Help save the environment
+💚 Sustainable lifestyle choice
+━━━━━━━━━━━━━━━━━━━━━━━━
+Generated: ${new Date().toLocaleDateString()}
+Valid for: 7 days from generation
+
+Thank you for choosing CarryKaro!
+Visit us at: carrykaro.com
+      `;
+      
+      const blob = new Blob([couponText], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `CarryKaro-Coupon-${code}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      // Show success message
+      const toast = document.createElement('div');
+      toast.className = 'toast show';
+      toast.innerHTML = `
+        <div class="toast-body">
+          <i class="fas fa-download me-2"></i>Coupon downloaded successfully!
+        </div>
+      `;
+      document.querySelector('.toast-container').appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    // Print coupon function
+    function printCoupon(code, discount) {
+      const printWindow = window.open('', '_blank');
+      const couponHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>CarryKaro Coupon - ${code}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 20px;
+              background: #f8f9fa;
+            }
+            .coupon-container {
+              max-width: 600px;
+              margin: 0 auto;
+              background: white;
+              border: 3px dashed #28a745;
+              border-radius: 15px;
+              padding: 30px;
+              text-align: center;
+              box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+            .logo {
+              font-size: 2.5rem;
+              font-weight: bold;
+              color: #28a745;
+              margin-bottom: 10px;
+            }
+            .logo .carry { color: #333; }
+            .logo .karo { color: #28a745; }
+            .discount {
+              font-size: 3rem;
+              font-weight: bold;
+              color: #28a745;
+              margin: 20px 0;
+            }
+            .coupon-code {
+              font-size: 2rem;
+              font-weight: bold;
+              letter-spacing: 3px;
+              background: #f8f9fa;
+              padding: 15px;
+              border: 2px dashed #28a745;
+              border-radius: 8px;
+              margin: 20px 0;
+            }
+            .details {
+              margin: 20px 0;
+              font-size: 1.1rem;
+              line-height: 1.6;
+            }
+            .footer {
+              margin-top: 30px;
+              padding-top: 20px;
+              border-top: 1px solid #dee2e6;
+              font-size: 0.9rem;
+              color: #6c757d;
+            }
+            .eco-message {
+              background: #d4edda;
+              color: #155724;
+              padding: 15px;
+              border-radius: 8px;
+              margin: 20px 0;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="coupon-container">
+            <div class="logo">
+              <span class="carry">Carry</span><span class="karo">Karo</span>
+            </div>
+            <h2>🎉 EXCLUSIVE COUPON 🎉</h2>
+            
+            <div class="discount">${discount}% OFF</div>
+            
+            <div class="coupon-code">${code}</div>
+            
+            <div class="details">
+              <strong>Your One-Time Coupon Code</strong><br>
+              Generated on: ${new Date().toLocaleDateString()}<br>
+              Status: <span style="color: #28a745;">✅ Active</span>
+            </div>
+            
+            <div class="eco-message">
+              <strong>🌱 Thank you for choosing eco-friendly shopping!</strong><br>
+              Help save the environment with sustainable choices.
+            </div>
+            
+            <div class="footer">
+              <p><strong>Important:</strong> This is your exclusive one-time coupon. Keep it safe!</p>
+              <p>Visit us at: <strong>carrykaro.com</strong></p>
+              <p>For support: contact@carrykaro.com</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      printWindow.document.open();
+      printWindow.document.write(couponHTML);
+      printWindow.document.close();
+      
+      printWindow.onload = function() {
+        printWindow.print();
+        printWindow.close();
+      };
+      
+      // Show success message
+      const toast = document.createElement('div');
+      toast.className = 'toast show';
+      toast.innerHTML = `
+        <div class="toast-body">
+          <i class="fas fa-print me-2"></i>Coupon sent to printer!
+        </div>
+      `;
+      document.querySelector('.toast-container').appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    // Share coupon function
+    function shareCoupon(code, discount) {
+      const shareText = `🎉 Got a ${discount}% OFF coupon for CarryKaro! Code: ${code}\n🌱 Join me in sustainable shopping! #EcoFriendly #CarryKaro`;
+      
+      if (navigator.share) {
+        navigator.share({
+          title: 'CarryKaro Coupon',
+          text: shareText,
+          url: window.location.origin
+        }).catch(() => {
+          // User cancelled or share failed, copy to clipboard as fallback
+          fallbackShare(shareText);
+        });
+      } else {
+        // Fallback - copy to clipboard
+        fallbackShare(shareText);
+      }
+    }
+
+    function fallbackShare(shareText) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(shareText).then(() => {
+          alert('Coupon details copied to clipboard! You can now share it anywhere.');
+        });
+      } else {
+        // Use fallback copy method
+        fallbackCopyToClipboard(shareText);
+        alert('Coupon details copied! You can now paste and share it anywhere.');
+      }
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+
+</html>

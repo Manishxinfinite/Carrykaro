@@ -2,19 +2,15 @@ import os
 import random
 import string
 from datetime import datetime, timedelta
-from flask import Flask, render_template, redirect, url_for, request, flash, send_from_directory, jsonify
+from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
 from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 from config import Config
 from models import db, User, Coupon, ScanLog
-import qrcode
 
 # ---------------- APP INIT ----------------
-app = Flask(__name__, static_folder='ststic')
+app = Flask(__name__)
 app.config.from_object(Config)
-
-# Ensure QR folder exists
-os.makedirs(app.config['QR_FOLDER'], exist_ok=True)
 
 # Database & migration
 db.init_app(app)
@@ -34,17 +30,6 @@ def random_code():
     suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
     return f"OFF{percent}-{suffix}", percent
 
-def generate_qr_image(code):
-    qr = qrcode.QRCode(box_size=10, border=2)
-    url = url_for('view_coupon', code=code, _external=True)
-    qr.add_data(url)
-    qr.make(fit=True)
-    img = qr.make_image()
-    filename = f"{code}.png"
-    path = os.path.join(app.config['QR_FOLDER'], filename)
-    img.save(path)
-    return filename
-
 # ---------------- ROUTES ----------------
 @app.route('/')
 def index():
@@ -53,6 +38,11 @@ def index():
 @app.route('/offers')
 def offers():
     return render_template('index1.html')
+
+@app.route('/test_flash')
+def test_flash():
+    flash('This is a test message!', 'danger')
+    return render_template('auth/login.html')
 
 # ---------------- AUTH ----------------
 @app.route('/signup', methods=['GET', 'POST'])
@@ -84,12 +74,25 @@ def login():
     if request.method == 'POST':
         username = request.form['username'].strip()
         password = request.form['password']
+        print(f"DEBUG: Login attempt - Username: {username}")
+        
         u = User.query.filter_by(username=username).first()
-        if u and u.check_password(password):
-            login_user(u)
-            flash('Logged in successfully.', 'success')
-            return redirect(url_for('dashboard'))
+        print(f"DEBUG: User found: {u is not None}")
+        
+        if u:
+            print(f"DEBUG: User role: {u.role}")
+            password_correct = u.check_password(password)
+            print(f"DEBUG: Password correct: {password_correct}")
+            
+            if password_correct:
+                login_user(u)
+                flash('Logged in successfully.', 'success')
+                return redirect(url_for('dashboard'))
+        
+        print("DEBUG: Adding flash message for invalid login")
         flash('Invalid username or password.', 'danger')
+        print("DEBUG: Flash message added, rendering login template")
+    
     return render_template('auth/login.html')
 
 @app.route('/logout')
@@ -103,25 +106,23 @@ def logout():
 @login_required
 def dashboard():
     role = getattr(current_user, 'role', None)
+    print(f"DEBUG: Current user: {current_user.username}, Role: {role}")  # Debug line
+    
     if role == 'admin':
         coupons = Coupon.query.order_by(Coupon.created_at.desc()).all()
         users = User.query.order_by(User.id).all()
-        # Example: sum all sponsor bags
         total_bags = sum(user.bags_sold for user in users if user.role == 'sponsor')
         return render_template('dashboard/admin.html', coupons=coupons, users=users, bags_sold=total_bags)
     
     if role == 'sponsor':
         coupons = Coupon.query.order_by(Coupon.created_at.desc()).all()
-        # show only current user's bags
         return render_template('dashboard/sponsor.html', coupons=coupons, bags_sold=current_user.bags_sold)
     
     if role == 'vendor':
         coupons = Coupon.query.order_by(Coupon.created_at.desc()).all()
         return render_template('dashboard/vendor.html', coupons=coupons)
     
-    # user
     return render_template('dashboard/user.html')
-
 
 # ---------------- ADMIN ACTIONS ----------------
 @app.route('/update_bags', methods=['POST'])
@@ -222,21 +223,79 @@ def change_password():
     flash(f"{user.username}'s password updated.", "success")
     return redirect(url_for('dashboard'))
 
+@app.route('/admin/delete_user', methods=['POST'])
+@login_required
+def delete_user():
+    if current_user.role != 'admin':
+        flash("Unauthorized", "danger")
+        return redirect(url_for('dashboard'))
+
+    user_id = request.form.get('user_id')
+    confirm_delete = request.form.get('confirm_delete')
+
+    if not user_id or confirm_delete != 'DELETE':
+        flash("Invalid confirmation. Type 'DELETE' to confirm.", "danger")
+        return redirect(url_for('dashboard'))
+
+    try:
+        uid = int(user_id)
+    except:
+        flash("Invalid user id.", "danger")
+        return redirect(url_for('dashboard'))
+
+    user = User.query.get(uid)
+    if not user:
+        flash("User not found.", "danger")
+        return redirect(url_for('dashboard'))
+
+    # Prevent deleting the admin account
+    if user.username == 'admin':
+        flash("Cannot delete admin account.", "danger")
+        return redirect(url_for('dashboard'))
+
+    # Delete associated scan logs first
+    scan_logs = ScanLog.query.join(Coupon).filter(Coupon.created_by_id == user.id).all()
+    for log in scan_logs:
+        db.session.delete(log)
+
+    # Delete associated coupons
+    coupons = Coupon.query.filter_by(created_by_id=user.id).all()
+    for coupon in coupons:
+        db.session.delete(coupon)
+
+    # Delete the user
+    username = user.username
+    db.session.delete(user)
+    db.session.commit()
+    
+    flash(f"Account '{username}' has been permanently deleted.", "success")
+    return redirect(url_for('dashboard'))
+
 # ---------------- COUPON ROUTES ----------------
 @app.route('/generate_coupon', methods=['POST'])
 @login_required
 def generate_coupon_route():
+    print(f"DEBUG: User {current_user.username} (ID: {current_user.id}) attempting to generate coupon")
+    
     one_week_ago = datetime.utcnow() - timedelta(days=7)
-
+    
+    # Check for recent coupons by this user
     recent_coupon = Coupon.query.filter(
         Coupon.created_by_id == current_user.id,
         Coupon.created_at >= one_week_ago
     ).order_by(Coupon.created_at.desc()).first()
+    
+    print(f"DEBUG: Recent coupon found: {recent_coupon is not None}")
+    if recent_coupon:
+        print(f"DEBUG: Recent coupon created at: {recent_coupon.created_at}")
+        print(f"DEBUG: One week ago: {one_week_ago}")
+        print(f"DEBUG: Current time: {datetime.utcnow()}")
 
     if recent_coupon:
+        next_allowed_time = recent_coupon.created_at + timedelta(days=7)
         return jsonify({
             'error': 'You can only generate one coupon per week.',
-            'next_allowed': (recent_coupon.created_at + timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
+            'next_allowed': next_allowed_time.strftime('%Y-%m-%d %H:%M:%S')
         }), 400
 
     # Generate new coupon
@@ -244,20 +303,14 @@ def generate_coupon_route():
     c = Coupon(code=code, discount=discount, created_by_id=current_user.id, created_at=datetime.utcnow())
     db.session.add(c)
     db.session.commit()
-
-    filename = generate_qr_image(code)
-    qr_url = url_for('static_qr', filename=filename, _external=True)
+    
+    print(f"DEBUG: New coupon created: {code}")
 
     return jsonify({
         'code': code,
         'discount': discount,
-        'qr': qr_url,
-        'message': "🎉 QR generated! Take a screenshot. New code after a week."
+        'message': "🎉 Coupon generated! New code after a week."
     })
-
-@app.route('/ststic/qrcodes/<path:filename>')
-def static_qr(filename):
-    return send_from_directory(app.config['QR_FOLDER'], filename)
 
 @app.route('/scan/<code>')
 def view_coupon(code):
@@ -317,7 +370,24 @@ def redeem():
     return render_template('coupon/redeem_result.html', success=True, coupon=c)
 
 # ---------------- RUN APP ----------------
+# ---------------- RUN APP ----------------
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        
+        # Ensure admin exists, create only if missing
+        admin = User.query.filter_by(username='admin').first()
+        if not admin:
+            # Create new admin with default credentials
+            default_admin_password = os.environ.get('ADMIN_PASSWORD', 'ChangeMe123')  # Use env variable if set
+            default_admin_email = os.environ.get('ADMIN_EMAIL', 'admin@carrykaro.com')
+            
+            admin = User(username='admin', email=default_admin_email, role='admin')
+            admin.set_password(default_admin_password)
+            db.session.add(admin)
+            db.session.commit()
+            print("Admin user created - check database for credentials")
+        else:
+            print("Admin user already exists in database")
+        
     app.run(debug=True)
