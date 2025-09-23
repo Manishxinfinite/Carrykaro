@@ -277,31 +277,28 @@ def delete_user():
 def generate_coupon_route():
     print(f"DEBUG: User {current_user.username} (ID: {current_user.id}) attempting to generate coupon")
     
-    one_week_ago = datetime.utcnow() - timedelta(days=7)
+    # Check for the latest coupon by this user
+    last_coupon = Coupon.query.filter_by(created_by_id=current_user.id).order_by(Coupon.created_at.desc()).first()
     
-    # Check for recent coupons by this user
-    recent_coupon = Coupon.query.filter(
-        Coupon.created_by_id == current_user.id,
-        Coupon.created_at >= one_week_ago
-    ).order_by(Coupon.created_at.desc()).first()
-    
-    print(f"DEBUG: Recent coupon found: {recent_coupon is not None}")
-    if recent_coupon:
-        print(f"DEBUG: Recent coupon created at: {recent_coupon.created_at}")
-        print(f"DEBUG: One week ago: {one_week_ago}")
-        print(f"DEBUG: Current time: {datetime.utcnow()}")
-
-    if recent_coupon:
-        next_allowed_time = recent_coupon.created_at + timedelta(days=7)
-        return jsonify({
-            'error': 'You can only generate one coupon per week.',
-            'next_allowed': next_allowed_time.strftime('%Y-%m-%d %H:%M:%S')
-        }), 400
+    if last_coupon:
+        # Compute next allowed generation time
+        next_allowed_time = last_coupon.created_at + timedelta(days=7)
+        if datetime.utcnow() < next_allowed_time:
+            print(f"DEBUG: Coupon generation blocked. Last coupon at {last_coupon.created_at}, next allowed {next_allowed_time}")
+            return jsonify({
+                'error': 'You can only generate one coupon per week.',
+                'next_allowed': next_allowed_time.strftime('%Y-%m-%d %H:%M:%S')
+            }), 400
 
     # Generate new coupon
     code, discount = random_code()
-    c = Coupon(code=code, discount=discount, created_by_id=current_user.id, created_at=datetime.utcnow())
-    db.session.add(c)
+    new_coupon = Coupon(
+        code=code,
+        discount=discount,
+        created_by_id=current_user.id,
+        created_at=datetime.utcnow()
+    )
+    db.session.add(new_coupon)
     db.session.commit()
     
     print(f"DEBUG: New coupon created: {code}")
